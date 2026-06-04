@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -12,89 +12,135 @@ router = APIRouter()
 # -------------------------------------------------
 def compute_funnel(db: Session, store_id: str):
 
-    events = db.query(EventDB).filter(
-        EventDB.store_id == store_id
-    ).all()
+    events = (
+        db.query(EventDB)
+        .filter(EventDB.store_id == store_id)
+        .all()
+    )
 
     sessions = {}
 
-    for e in events:
+    for event in events:
 
-        if e.is_staff:
+        if event.is_staff:
             continue
 
-        vid = e.visitor_id
+        visitor_id = event.visitor_id
 
-        if vid not in sessions:
-            sessions[vid] = {
+        if visitor_id not in sessions:
+            sessions[visitor_id] = {
                 "ENTRY": False,
                 "ZONE": False,
                 "BILLING": False,
                 "PURCHASE": False
             }
 
-        if e.event_type in ["ENTRY", "REENTRY"]:
-            sessions[vid]["ENTRY"] = True
+        # -------------------------
+        # ENTRY
+        # -------------------------
+        if event.event_type in ["ENTRY", "REENTRY"]:
+            sessions[visitor_id]["ENTRY"] = True
 
-        elif e.event_type in ["ZONE_ENTER", "ZONE_DWELL"]:
-            sessions[vid]["ZONE"] = True
-
-        elif e.event_type in [
-            "BILLING",
-            "BILLING_QUEUE_JOIN"
+        # -------------------------
+        # ZONE VISIT
+        # -------------------------
+        elif event.event_type in [
+            "ZONE_ENTER",
+            "ZONE_DWELL"
         ]:
-            sessions[vid]["BILLING"] = True
+            sessions[visitor_id]["ZONE"] = True
 
-        elif e.event_type == "PURCHASE":
-            sessions[vid]["PURCHASE"] = True
+        # -------------------------
+        # BILLING
+        # -------------------------
+        elif event.event_type in [
+            "BILLING",
+            "BILLING_QUEUE_JOIN",
+            "BILLING_QUEUE_ABANDON"
+        ]:
+            sessions[visitor_id]["BILLING"] = True
+
+        # -------------------------
+        # PURCHASE
+        # -------------------------
+        elif event.event_type == "PURCHASE":
+            sessions[visitor_id]["PURCHASE"] = True
 
     # -------------------------------------------------
     # AGGREGATION
     # -------------------------------------------------
-    entry = sum(
+
+    entry_count = sum(
         1 for s in sessions.values()
         if s["ENTRY"]
     )
 
-    zone = sum(
+    zone_count = sum(
         1 for s in sessions.values()
         if s["ZONE"]
     )
 
-    billing = sum(
+    billing_count = sum(
         1 for s in sessions.values()
         if s["BILLING"]
     )
 
-    purchase = sum(
+    purchase_count = sum(
         1 for s in sessions.values()
         if s["PURCHASE"]
     )
 
-    def safe_div(a, b):
-        return round((a / b) * 100, 2) if b else 0
+    # -------------------------------------------------
+    # SAFE PERCENTAGE HELPER
+    # -------------------------------------------------
+
+    def percentage(part, total):
+        if total == 0:
+            return 0
+        return round((part / total) * 100, 2)
+
+    # -------------------------------------------------
+    # RESPONSE
+    # -------------------------------------------------
 
     return {
         "store_id": store_id,
 
-        "entry": entry,
-        "zone_visits": zone,
-        "billing": billing,
-        "purchase": purchase,
+        "entry": entry_count,
+        "zone_visits": zone_count,
+        "billing": billing_count,
+        "purchase": purchase_count,
 
         "dropoffs": {
-            "entry_to_zone":
-                safe_div(entry - zone, entry),
+            "entry_to_zone": round(
+                percentage(
+                    entry_count - zone_count,
+                    entry_count
+                ),
+                2
+            ),
 
-            "zone_to_billing":
-                safe_div(zone - billing, zone),
+            "zone_to_billing": round(
+                percentage(
+                    zone_count - billing_count,
+                    zone_count
+                ),
+                2
+            ),
 
-            "billing_to_purchase":
-                safe_div(billing - purchase, billing)
+            "billing_to_purchase": round(
+                percentage(
+                    billing_count - purchase_count,
+                    billing_count
+                ),
+                2
+            )
         },
 
-        "conversion_rate":
-            safe_div(purchase, entry)
+        "conversion_rate": percentage(
+            purchase_count,
+            entry_count
+        )
     }
 
 
@@ -106,4 +152,7 @@ def get_funnel(
     store_id: str,
     db: Session = Depends(get_db)
 ):
-    return compute_funnel(db, store_id)
+    return compute_funnel(
+        db,
+        store_id
+    )
