@@ -5,6 +5,17 @@ from datetime import datetime, timedelta
 from app.database import SessionLocal
 from app.models import EventDB
 
+from pipeline.store_layout import StoreLayout
+
+layout = StoreLayout()
+
+zones = list(layout.zones.keys())
+
+visited_zones = random.sample(
+    zones,
+    random.randint(1, min(3, len(zones)))
+)
+
 
 STORE_ID = "STORE_BLR_002"
 
@@ -18,13 +29,11 @@ def seed_database():
     db.commit()
 
     zones = [
-        "ENTRANCE",
-        "SNACKS",
-        "DAIRY",
-        "BEVERAGES",
-        "CHECKOUT"
-    ]
-
+    "DISPLAY_TOP",
+    "FOH",
+    "AISLE_BOTTOM",
+    "BILLING"
+]
     for visitor_num in range(1, 301):
 
         visitor_id = f"VISITOR_{visitor_num}"
@@ -41,7 +50,7 @@ def seed_database():
                 visitor_id=visitor_id,
                 camera_id="CAM_1",
                 event_type="ENTRY",
-                zone_id="ENTRANCE",
+                zone_id="FOH",
                 timestamp=base_time,
                 is_staff=False
             )
@@ -81,7 +90,7 @@ def seed_database():
                     visitor_id=visitor_id,
                     camera_id="CAM_1",
                     event_type="BILLING_QUEUE_JOIN",
-                    zone_id="CHECKOUT",
+                    zone_id="BILLING",
                     timestamp=base_time + timedelta(minutes=5),
                     is_staff=False
                 )
