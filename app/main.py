@@ -1,10 +1,12 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import engine, Base
+from app.database import Base, engine
 from app.middleware import LoggingMiddleware
 from app.stream_consumer import start_event_consumer
+from app.seed_data import seed_database
 
 from app.health import router as health_router
 from app.ingestion import router as ingestion_router
@@ -12,7 +14,6 @@ from app.metrics import router as metrics_router
 from app.funnel import router as funnel_router
 from app.heatmap import router as heatmap_router
 from app.anomalies import router as anomalies_router
-from fastapi.middleware.cors import CORSMiddleware
 
 
 # --------------------------------------------------
@@ -26,7 +27,13 @@ Base.metadata.create_all(bind=engine)
 # --------------------------------------------------
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+
+    # Auto-seed database on first startup
+    seed_database()
+
+    # Start background consumer
     start_event_consumer()
+
     yield
 
 
@@ -36,9 +43,13 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Store Intelligence API",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
+
+# --------------------------------------------------
+# CORS
+# --------------------------------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -46,6 +57,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
 # --------------------------------------------------
 # MIDDLEWARE
 # --------------------------------------------------
@@ -70,4 +83,15 @@ app.include_router(anomalies_router)
 def root():
     return {
         "message": "Store Intelligence API is running"
+    }
+
+
+# --------------------------------------------------
+# MANUAL SEED ENDPOINT
+# --------------------------------------------------
+@app.post("/seed")
+def seed():
+    seed_database()
+    return {
+        "message": "Database seeded successfully"
     }

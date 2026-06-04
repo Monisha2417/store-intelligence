@@ -6,11 +6,9 @@ from app.database import SessionLocal
 from app.models import EventDB
 
 
-db = SessionLocal()
-
 STORE_ID = "STORE_BLR_002"
 
-zones = [
+ZONES = [
     "ENTRANCE",
     "SNACKS",
     "DAIRY",
@@ -18,33 +16,30 @@ zones = [
     "CHECKOUT"
 ]
 
-for visitor_num in range(1, 301):
 
-    visitor_id = f"VISITOR_{visitor_num}"
+def seed_database():
 
-    base_time = datetime.now() - timedelta(
-        minutes=random.randint(1, 1000)
+    db = SessionLocal()
+
+    # Prevent duplicate seeding
+    existing = (
+        db.query(EventDB)
+        .filter(EventDB.store_id == STORE_ID)
+        .first()
     )
 
-    entry_event = EventDB(
-        event_id=str(uuid.uuid4()),
-        store_id=STORE_ID,
-        visitor_id=visitor_id,
-        camera_id="CAM_1",
-        event_type="ENTRY",
-        zone_id="ENTRANCE",
-        timestamp=base_time,
-        is_staff=False
-    )
+    if existing:
+        print("Database already contains data.")
+        db.close()
+        return
 
-    db.add(entry_event)
+    for visitor_num in range(1, 301):
 
-    visited_zones = random.sample(
-        zones[1:-1],
-        random.randint(1, 3)
-    )
+        visitor_id = f"VISITOR_{visitor_num}"
 
-    for zone in visited_zones:
+        base_time = datetime.utcnow() - timedelta(
+            minutes=random.randint(1, 1000)
+        )
 
         db.add(
             EventDB(
@@ -52,29 +47,53 @@ for visitor_num in range(1, 301):
                 store_id=STORE_ID,
                 visitor_id=visitor_id,
                 camera_id="CAM_1",
-                event_type="ZONE_DWELL",
-                zone_id=zone,
+                event_type="ENTRY",
+                zone_id="ENTRANCE",
                 timestamp=base_time,
                 is_staff=False
             )
         )
 
-    if random.random() < 0.18:
-
-        db.add(
-            EventDB(
-                event_id=str(uuid.uuid4()),
-                store_id=STORE_ID,
-                visitor_id=visitor_id,
-                camera_id="CAM_1",
-                event_type="PURCHASE",
-                zone_id="CHECKOUT",
-                timestamp=base_time,
-                is_staff=False
-            )
+        visited_zones = random.sample(
+            ZONES[1:-1],
+            random.randint(1, 3)
         )
 
-db.commit()
-db.close()
+        for zone in visited_zones:
 
-print("Seeded 300 visitors")
+            db.add(
+                EventDB(
+                    event_id=str(uuid.uuid4()),
+                    store_id=STORE_ID,
+                    visitor_id=visitor_id,
+                    camera_id="CAM_1",
+                    event_type="ZONE_DWELL",
+                    zone_id=zone,
+                    timestamp=base_time,
+                    is_staff=False
+                )
+            )
+
+        if random.random() < 0.18:
+
+            db.add(
+                EventDB(
+                    event_id=str(uuid.uuid4()),
+                    store_id=STORE_ID,
+                    visitor_id=visitor_id,
+                    camera_id="CAM_1",
+                    event_type="PURCHASE",
+                    zone_id="CHECKOUT",
+                    timestamp=base_time,
+                    is_staff=False
+                )
+            )
+
+    db.commit()
+    db.close()
+
+    print("Seeded 300 visitors")
+
+
+if __name__ == "__main__":
+    seed_database()
