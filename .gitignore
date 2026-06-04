@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment
+.env
+
+# Database
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Coverage
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+
+# Frontend build
+dist/
+build/
+
+# Media / heavy artifacts
+*.mp4
+*.avi
+*.mov
+*.jpg
+*.jpeg
+*.png
+*.pt
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/

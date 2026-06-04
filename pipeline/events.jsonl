@@ -1,0 +1,15 @@
+{
+  "event_id": "uuid",
+  "store_id": "STORE_BLR_001",
+  "camera_id": "CAM_ENTRY_01",
+  "visitor_id": "VIS_4",
+  "event_type": "ENTRY",
+  "timestamp": "2026-05-30T10:20:15Z",
+  "zone_id": null,
+  "dwell_ms": 0,
+  "is_staff": false,
+  "confidence": 0.95,
+  "metadata": {
+    "session_seq": 1
+  }
+}

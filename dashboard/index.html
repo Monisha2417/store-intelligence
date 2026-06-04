@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Store Intelligence Dashboard</title>
+</head>
+<body>
+
+<h1>Store Intelligence Dashboard</h1>
+
+<h2 id="visitors">Visitors: Loading...</h2>
+<h2 id="conversion">Conversion: Loading...</h2>
+
+<script>
+
+async function loadMetrics() {
+
+    const response =
+        await fetch(
+            "http://localhost:8000/stores/STORE_BLR_002/metrics"
+        );
+
+    const data = await response.json();
+
+    document.getElementById("visitors").innerText =
+        "Visitors: " + data.unique_visitors;
+
+    document.getElementById("conversion").innerText =
+        "Conversion Rate: " +
+        data.conversion_rate +
+        "%";
+}
+
+loadMetrics();
+
+setInterval(loadMetrics, 3000);
+
+</script>
+
+</body>
+</html>

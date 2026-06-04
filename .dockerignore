@@ -1,0 +1,60 @@
+# Python
+
+**pycache**/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Git
+
+.git/
+
+# Environment
+
+.env
+venv/
+.venv/
+
+# Node
+
+node_modules/
+frontend/node_modules/
+
+# Documentation
+
+docs/screenshots/
+
+# Databases
+
+*.db
+
+# Video files
+
+*.mp4
+*.avi
+*.mov
+
+# Images
+
+*.png
+*.jpg
+*.jpeg
+
+# ML models
+
+*.pt
+*.pth
+*.onnx
+
+# Generated outputs
+
+events.jsonl
+output*
+logs/
+tmp/
+
+# OS files
+
+.DS_Store
+Thumbs.db
