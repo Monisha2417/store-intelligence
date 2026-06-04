@@ -358,7 +358,7 @@ These documents describe:
 
 ### Dashboard
 
-![Dashboard](docs\screenshots\Dashboard-overview.png)
+![Dashboard](docs/screenshots/Dashboard-overview.png)
 
 ### API Documentation
 
