@@ -29,9 +29,7 @@ build/
 *.mp4
 *.avi
 *.mov
-*.jpg
 *.jpeg
-*.png
 *.pt
 
 # OS junk
