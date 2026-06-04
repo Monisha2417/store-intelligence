@@ -126,7 +126,7 @@ store-intelligence/
 ### Clone Repository
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/Monisha2417/store-intelligence.git>
 cd store-intelligence
 ```
 
@@ -358,7 +358,7 @@ These documents describe:
 
 ### Dashboard
 
-![Dashboard](docs/screenshots/Dashboard-overview.png)
+![Dashboard](docs\screenshots\Dashboard-overview.png)
 
 ### API Documentation
 
